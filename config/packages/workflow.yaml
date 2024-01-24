@@ -1,0 +1,30 @@
+framework:
+    workflows:
+        blog_publishing:
+            type: 'state_machine' # or 'state_machine'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type: 'method'
+                property: 'currentPlace'
+            supports:
+                - App\Entity\BlogPost
+            initial_marking: !php/const App\Entity\BlogPost::STATE_DRAFT
+            places:
+                - !php/const App\Entity\BlogPost::STATE_DRAFT
+                - !php/const App\Entity\BlogPost::STATE_REVIEWED
+                - !php/const App\Entity\BlogPost::STATE_REJECTED
+                - !php/const App\Entity\BlogPost::STATE_PUBLISHED
+            transitions:
+                !php/const App\Entity\BlogPost::TRANSITION_TO_REVIEW:
+                    from: !php/const App\Entity\BlogPost::STATE_DRAFT
+                    to:   !php/const App\Entity\BlogPost::STATE_REVIEWED
+                !php/const App\Entity\BlogPost::TRANSITION_PUBLISH:
+                    from: !php/const App\Entity\BlogPost::STATE_REVIEWED
+                    to:   !php/const App\Entity\BlogPost::STATE_PUBLISHED
+                !php/const App\Entity\BlogPost::TRANSITION_REJECT:
+                    from: !php/const App\Entity\BlogPost::STATE_REVIEWED
+                    to:   !php/const App\Entity\BlogPost::STATE_REJECTED
+                !php/const App\Entity\BlogPost::TRANSITION_TO_DRAFT:
+                    from: [!php/const App\Entity\BlogPost::STATE_REJECTED, !php/const App\Entity\BlogPost::STATE_PUBLISHED]
+                    to: !php/const App\Entity\BlogPost::STATE_DRAFT

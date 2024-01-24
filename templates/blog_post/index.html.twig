@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}BlogPost index{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">BlogPost index</h1>
+
+        <table class="table-auto w-full text-left whitespace-nowrap">
+            <thead>
+            <tr class="bg-gray-200 text-gray-600 uppercase text-xs tracking-wider font-semibold">
+                <th class="p-2">Id</th>
+                <th class="p-2">Title</th>
+                <th class="p-2">Content</th>
+                <th class="p-2">Place</th>
+                <th class="p-2">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for blog_post in blog_posts %}
+                <tr class="border-b border-gray-200 hover:bg-gray-100">
+                    <td class="p-2">{{ blog_post.id }}</td>
+                    <td class="p-2">{{ blog_post.title }}</td>
+                    <td class="p-2">{{ blog_post.content }}</td>
+                    <td class="p-2">{{ blog_post.currentPlace }}</td>
+                    <td class="p-2 flex justify-end space-x-2">
+                        <a href="{{ path('app_blog_post_show', {'id': blog_post.id}) }}" class="text-blue-500 hover:underline">Show</a>
+                        <a href="{{ path('app_blog_post_edit', {'id': blog_post.id}) }}" class="text-green-500 hover:underline">Edit</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4" class="p-4 text-center">No records found</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="mt-4">
+            <a href="{{ path('app_blog_post_new') }}" class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">Create new</a>
+        </div>
+    </div>
+{% endblock %}
+

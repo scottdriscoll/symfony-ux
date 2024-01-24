@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}BlogPost{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">BlogPost</h1>
+
+        <table class="table-auto w-full text-left whitespace-nowrap">
+            <tbody>
+            <tr class="border-b border-gray-200">
+                <th class="p-2">Id</th>
+                <td class="p-2">{{ blog_post.id }}</td>
+            </tr>
+            <tr class="border-b border-gray-200">
+                <th class="p-2">Title</th>
+                <td class="p-2">{{ blog_post.title }}</td>
+            </tr>
+            <tr class="border-b border-gray-200">
+                <th class="p-2">Content</th>
+                <td class="p-2">{{ blog_post.content }}</td>
+            </tr>
+            <tr class="border-b border-gray-200">
+                <th class="p-2">Place</th>
+                <td class="p-2">{{ blog_post.currentPlace }}</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="flex justify-end mt-4">
+            <a href="{{ path('app_blog_post_index') }}" class="text-blue-500 hover:underline">Back to list</a>
+            <a href="{{ path('app_blog_post_edit', {'id': blog_post.id}) }}" class="ml-4 text-green-500 hover:underline">Edit</a>
+        </div>
+
+        {{ include('blog_post/_delete_form.html.twig') }}
+
+        <div class="mt-4">
+            {% if workflow_can(blog_post, 'to_review') %}
+                <a href="{{ path('app_blog_post_review', {'id': blog_post.id}) }}" class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">Review</a>
+            {% endif %}
+            {% if workflow_can(blog_post, 'reject') %}
+                <a href="{{ path('app_blog_post_reject', {'id': blog_post.id}) }}" class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">Reject</a>
+            {% endif %}
+            {% if workflow_can(blog_post, 'publish') %}
+                <a href="{{ path('app_blog_post_publish', {'id': blog_post.id}) }}" class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">Publish</a>
+            {% endif %}
+            {% if workflow_can(blog_post, 'to_draft') %}
+                <a href="{{ path('app_blog_post_draft', {'id': blog_post.id}) }}" class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">Return to Draft</a>
+            {% endif %}
+            {% for blocker in workflow_transition_blockers(blog_post, 'publish') %}
+                <span class="error">{{ blocker.message }}</span>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
