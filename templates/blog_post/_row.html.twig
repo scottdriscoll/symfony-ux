@@ -6,5 +6,6 @@
     <td class="p-2 flex justify-end space-x-2">
         <a href="{{ path('app_blog_post_show', {'id': blog_post.id}) }}" class="text-blue-500 hover:underline">Show</a>
         <a href="{{ path('app_blog_post_edit', {'id': blog_post.id}) }}" class="text-green-500 hover:underline">Edit</a>
+        {% include "blog_post/_delete_form.html.twig" %}
     </td>
 </tr>

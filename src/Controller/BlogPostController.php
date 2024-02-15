@@ -121,13 +121,25 @@ class BlogPostController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_blog_post_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, BlogPost $blogPost, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, BlogPost $blogPost, EntityManagerInterface $entityManager, HubInterface $hub): Response
     {
         $form = $this->createForm(BlogPostType::class, $blogPost);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
+
+            $update = new Update(
+                'blog_listing',
+                "
+                <turbo-stream action=\"replace\" target=\"blog_".$blogPost->getId()."\">
+                 <template>".
+                $this->renderView('blog_post/_row.html.twig', ['blog_post' => $blogPost])
+                ."</template>
+                </turbo-stream>
+                "
+            );
+            $hub->publish($update);
 
             return $this->redirectToRoute('app_blog_post_index', [], Response::HTTP_SEE_OTHER);
         }
