@@ -10,6 +10,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Mercure\HubInterface;
+use Symfony\Component\Mercure\Update;
 use Symfony\Component\Workflow\WorkflowInterface;
 
 #[Route('/blog/post')]
@@ -24,7 +26,7 @@ class BlogPostController extends AbstractController
     }
 
     #[Route('/new', name: 'app_blog_post_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, HubInterface $hub): Response
     {
         $blogPost = new BlogPost();
         $form = $this->createForm(BlogPostType::class, $blogPost);
@@ -33,6 +35,18 @@ class BlogPostController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($blogPost);
             $entityManager->flush();
+
+            $update = new Update(
+                'blog_listing',
+                "
+                <turbo-stream action=\"append\" target=\"my-fancy-table\">
+                 <template>".
+                    $this->renderView('blog_post/_row.html.twig', ['blog_post' => $blogPost])
+                 ."</template>
+                </turbo-stream>
+                "
+            );
+            $hub->publish($update);
 
             return $this->redirectToRoute('app_blog_post_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -125,13 +139,52 @@ class BlogPostController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_blog_post_delete', methods: ['POST'])]
-    public function delete(Request $request, BlogPost $blogPost, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, BlogPost $blogPost, EntityManagerInterface $entityManager, HubInterface $hub): Response
     {
         if ($this->isCsrfTokenValid('delete'.$blogPost->getId(), $request->request->get('_token'))) {
+            $id = $blogPost->getId();
             $entityManager->remove($blogPost);
             $entityManager->flush();
+
+            $update = new Update(
+                'blog_listing',
+                "
+                <turbo-stream action=\"remove\" target=\"blog_" . $id . "\">
+                 <template></template>
+                </turbo-stream>
+                "
+            );
+            $hub->publish($update);
         }
 
         return $this->redirectToRoute('app_blog_post_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/blog/test', name: 'app_blog_test', methods: ['GET'])]
+    public function frame(): Response
+    {
+        $number = (string) rand(1, 500);
+
+        return new Response(
+            "<turbo-stream action=\"update\" target=\"test-stream\"><template>Is this thing on? $number</template></turbo-stream>",
+            Response::HTTP_OK,
+            [
+                'content-type' => 'text/vnd.turbo-stream.html'
+            ]
+        );
+    }
+
+    #[Route('/blog/frame', name: 'app_blog_frame', methods: ['GET'])]
+    public function testingFrame(): Response
+    {
+        $number = (string) rand(1, 500);
+
+        return $this->render('blog_post/_frame.html.twig', ['num' => $number]);
+    }
+
+    #[Route('/blog/frame/load', name: 'app_blog_frame_load', methods: ['GET'])]
+    public function loadingFrame(): Response
+    {
+        return $this->render('blog_post/_load.html.twig');
     }
 }

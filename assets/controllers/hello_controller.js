@@ -10,7 +10,14 @@ import { Controller } from '@hotwired/stimulus';
  * Delete this file or adapt it for your use!
  */
 export default class extends Controller {
-    connect() {
-        this.element.textContent = 'Hello Stimulus! Edit me in assets/controllers/hello_controller.js';
+    click() {
+        fetch("/blog/post/blog/test", {
+            headers: {
+                Accept: "text/vnd.turbo-stream.html"
+            }
+        })
+            .then(response => response.text())
+            .then(html => Turbo.renderStreamMessage(html))
+        ;
     }
 }
