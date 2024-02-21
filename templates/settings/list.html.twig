@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello SettingsController!{% endblock %}
+
+{% block body %}
+    {% for setting in settings %}
+        <a href="{{ path('app_settings', {name: setting}) }}">{{ setting }}</a><br/>
+    {% endfor %}
+{% endblock %}
