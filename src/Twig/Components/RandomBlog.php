@@ -15,12 +15,26 @@ final class RandomBlog extends AbstractController
 {
     use DefaultActionTrait;
 
+    public function __construct(
+        private readonly BlogPostRepository $repository
+    ) { }
+
     #[LiveProp]
     public ?BlogPost $post = null;
 
+    #[LiveProp(writable: true, onUpdated: 'loadCurrentBlog')]
+    public ?int $blogId = null;
+
     #[LiveListener('getRandomBlog')]
-    public function getRandomBlogPost(BlogPostRepository $repository): void
+    public function getRandomBlogPost(): void
     {
-       $this->post = $repository->findRandom();
+       $this->post = $this->repository->findRandom();
+    }
+
+    public function loadCurrentBlog(): void
+    {
+        if ($this->blogId) {
+            $this->post = $this->repository->find($this->blogId);
+        }
     }
 }
